@@ -11,10 +11,12 @@ exports.upsertSetting = async (req, res) => {
   try {
     const setting = await prisma.setting.upsert({
       where: {
-        key, // unique key constraint
+        userId_key: {
+          userId,
+          key,
+        },
       },
       update: {
-        userId,
         value: String(value),
       },
       create: {
