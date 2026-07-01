@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+/backend/node_modules/
+/frontend/node_modules/
+/telegram-bot/node_modules/
+
+# Local Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build outputs
+/frontend/.next/
+/frontend/out/
+/backend/dist/
+/telegram-bot/dist/
+build/
+dist/
+
+# Logs and Temp
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+scratch/
+null
