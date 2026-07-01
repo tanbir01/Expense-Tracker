@@ -3,6 +3,16 @@ const axios = require("axios");
 const cron = require("node-cron");
 require("dotenv").config();
 
+// Dummy server to satisfy Render Web Service health checks
+const http = require("http");
+const PORT = process.env.PORT || 8000;
+http.createServer((req, res) => {
+  res.writeHead(200, { "Content-Type": "text/plain" });
+  res.end("Bot is online\n");
+}).listen(PORT, () => {
+  console.log(`Health check server listening on port ${PORT}`);
+});
+
 const botToken = process.env.TELEGRAM_BOT_TOKEN;
 const backendUrl = process.env.BACKEND_API_URL || "http://localhost:5000/api";
 const botSecret = process.env.TELEGRAM_BOT_SECRET || "default_bot_secret";

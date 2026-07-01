@@ -12,7 +12,7 @@ RUN npm install
 COPY . .
 
 # Generate Prisma Client library
-RUN npx prisma generate
+RUN DATABASE_URL="postgresql://dummy@dummy:5432/dummy" DIRECT_URL="postgresql://dummy@dummy:5432/dummy" npx prisma generate
 
 EXPOSE 5000
 
