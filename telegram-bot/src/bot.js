@@ -3,15 +3,7 @@ const axios = require("axios");
 const cron = require("node-cron");
 require("dotenv").config();
 
-// Dummy server to satisfy Render Web Service health checks
-const http = require("http");
 const PORT = process.env.PORT || 8000;
-http.createServer((req, res) => {
-  res.writeHead(200, { "Content-Type": "text/plain" });
-  res.end("Bot is online\n");
-}).listen(PORT, () => {
-  console.log(`Health check server listening on port ${PORT}`);
-});
 
 const botToken = process.env.TELEGRAM_BOT_TOKEN;
 const backendUrl = process.env.BACKEND_API_URL || "http://localhost:5000/api";
@@ -213,10 +205,41 @@ cron.schedule("0 22 * * *", async () => {
   }
 });
 
-// Start bot
-bot.launch().then(() => {
-  console.log("Telegram Bot worker started successfully.");
-});
+// Start bot using Webhooks in production, fallback to Long-Polling in dev
+const http = require("http");
+const BOT_DOMAIN = process.env.BOT_DOMAIN;
+
+if (BOT_DOMAIN) {
+  // Production Webhook HTTP server (handles GET for health check, passes POST to Telegraf)
+  const webhookCallback = bot.webhookCallback("/");
+  http.createServer((req, res) => {
+    if (req.method === "GET") {
+      res.writeHead(200, { "Content-Type": "text/plain" });
+      res.end("Bot is online\n");
+    } else {
+      webhookCallback(req, res);
+    }
+  }).listen(PORT, () => {
+    console.log(`Telegram Bot listening on port ${PORT} (Webhook Production Mode)`);
+  });
+
+  // Set Telegram webhook url
+  bot.telegram.setWebhook(BOT_DOMAIN).then(() => {
+    console.log(`Telegram Webhook URL set to: ${BOT_DOMAIN}`);
+  });
+} else {
+  // Local Development: Dummy HTTP server for port scanner and Long Polling
+  http.createServer((req, res) => {
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    res.end("Bot is online\n");
+  }).listen(PORT, () => {
+    console.log(`Health check server listening on port ${PORT} (Long-Polling Dev Mode)`);
+  });
+
+  bot.launch().then(() => {
+    console.log("Telegram Bot worker started successfully on Long-Polling.");
+  });
+}
 
 // Enable graceful stop
 process.once("SIGINT", () => bot.stop("SIGINT"));

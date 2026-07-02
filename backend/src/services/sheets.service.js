@@ -132,6 +132,14 @@ class SheetsService {
       return true;
     } catch (error) {
       console.error("Error appending transaction to Google Sheets:", error);
+      try {
+        await prisma.transaction.update({
+          where: { id: transaction.id },
+          data: { syncError: error.message || String(error) },
+        });
+      } catch (dbErr) {
+        console.error("Failed to write sync error to database:", dbErr.message);
+      }
       return false;
     }
   }
